@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Comments</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #comments { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        #messageInput { width: 80%; padding: 5px; }
+        #sendButton { padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Comments</h1>
+    <div id="comments"></div>
+    <input id="messageInput" type="text" placeholder="Enter your comment..." />
+    <button id="sendButton">Send</button>
+
+    <script>
+        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+
+        const commentsDiv = document.getElementById("comments");
+        const messageInput = document.getElementById("messageInput");
+        const sendButton = document.getElementById("sendButton");
+
+        // Отображение полученных сообщений
+        socket.onmessage = function(event) {
+            const message = event.data;
+            const commentElement = document.createElement("p");
+            commentElement.textContent = message;
+            commentsDiv.appendChild(commentElement);
+            commentsDiv.scrollTop = commentsDiv.scrollHeight; // Прокрутка вниз
+        };
+
+        // Отправка сообщения при нажатии кнопки
+        sendButton.onclick = function() {
+            const message = messageInput.value;
+            if (message) {
+                socket.send(message);
+                messageInput.value = "";
+            }
+        };
+
+        // Отправка сообщения по нажатию Enter
+        messageInput.addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                sendButton.click();
+            }
+        });
+
+        // Обработка ошибок WebSocket
+        socket.onerror = function(error) {
+            console.error("WebSocket Error:", error);
+        };
+
+        // Обработка закрытия соединения
+        socket.onclose = function() {
+            console.log("WebSocket connection closed");
+        };
+    </script>
+</body>
+</html>

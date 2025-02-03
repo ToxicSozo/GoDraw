@@ -7,6 +7,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	templateDir = "/home/nebc/Desktop/paint/web/templates/html"
+)
+
 type WSServer interface {
 	Start() error
 }
@@ -34,7 +38,7 @@ func NewWsServer(addr string) WSServer {
 }
 
 func (ws *wsSrv) Start() error {
-	log.Printf("Starting WebSocket server on %s", ws.srv.Addr)
+	ws.mux.Handle("/", http.FileServer(http.Dir(templateDir)))
 	ws.mux.HandleFunc("/ws", ws.wsHandler)
 	ws.mux.HandleFunc("/test", ws.testHandler)
 	return ws.srv.ListenAndServe()
