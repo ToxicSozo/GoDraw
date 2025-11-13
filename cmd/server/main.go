@@ -1,19 +1,28 @@
 package main
 
 import (
-	"github.com/ToxicSozo/GoDraw/internal/wsserver"
-	"github.com/sirupsen/logrus"
-)
+	"log"
+	"net/http"
+	"time"
 
-const (
-	addr = "0.0.0.0:8080"
+	"github.com/ToxicSozo/GoDraw/internal/httpserver"
+	"github.com/ToxicSozo/GoDraw/internal/store"
 )
 
 func main() {
-	wsSrv := wsserver.NewWsServer(addr)
+	st := store.New()
+	handler := httpserver.New(st)
 
-	logrus.Info("Запуск WebSocket сервера на ", addr)
-	if err := wsSrv.Start(); err != nil {
-		logrus.WithError(err).Fatal("Ошибка при запуске сервера")
+	srv := &http.Server{
+		Addr:         ":8080",
+		Handler:      handler,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	log.Printf("starting reviewer service on %s", srv.Addr)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("server stopped: %v", err)
 	}
 }
